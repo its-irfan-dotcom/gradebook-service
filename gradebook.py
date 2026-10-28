@@ -16,6 +16,7 @@ from errors import (
 from models import parse_assessment, parse_mark, parse_student
 
 DATA = "gradebook.json"
+
 STATE: dict[str, Any] = {
     "students": {},
     "assessments": {},
@@ -24,7 +25,6 @@ STATE: dict[str, Any] = {
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 
 def load() -> dict[str, Any]:
@@ -48,6 +48,40 @@ def save() -> None:
         json.dump(STATE, file)
 
 
+def add_mark(
+    state: dict[str, Any],
+    mark: Any,
+    now: Callable[[], str],
+    save: Callable[[], None],
+) -> None:
+    student_id = mark.student
+    assessment_id = mark.assessment
+    score = mark.score
+
+    if student_id not in state["students"]:
+        raise NotFoundError("student not found")
+
+    if assessment_id not in state["assessments"]:
+        raise NotFoundError("assessment not found")
+
+    assessment = state["assessments"][assessment_id]
+
+    if score > float(assessment["total"]):
+        raise ValidationError(
+            "score cannot exceed assessment total"
+        )
+
+    mark_record: dict[str, Any] = {
+        "student": student_id,
+        "assessment": assessment_id,
+        "score": score,
+        "at": now(),
+    }
+
+    state["marks"].append(mark_record)
+    save()
+
+
 def pct(sid: str) -> str:
     total = 0.0
     got = 0.0
@@ -55,9 +89,11 @@ def pct(sid: str) -> str:
     for mark in STATE["marks"]:
         if mark["student"] == sid:
             assessment = STATE["assessments"].get(mark["assessment"])
+
             if assessment:
                 weight = float(assessment["weight"])
                 assessment_total = float(assessment["total"])
+
                 got += float(mark["score"]) * weight / assessment_total
                 total += weight
 
@@ -68,6 +104,7 @@ def pct(sid: str) -> str:
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
+
     def log_message(self, format_string: str, *args: Any) -> None:
         logger.info(
             "%s - %s",
@@ -77,6 +114,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def _send(self, code: int, obj: object) -> None:
         body = json.dumps(obj).encode("utf-8")
+
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", str(len(body)))
@@ -87,14 +125,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             status, body = action()
             self._send(status, body)
+
         except ValidationError as exc:
             self._send(400, {"error": str(exc)})
+
         except NotFoundError as exc:
             self._send(404, {"error": str(exc)})
+
         except ConflictError as exc:
             self._send(409, {"error": str(exc)})
+
         except GradebookError as exc:
             self._send(400, {"error": str(exc)})
+
         except Exception:
             logger.exception(
                 "Unexpected error while handling %s",
@@ -113,11 +156,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 raise NotFoundError("student not found")
 
             student = STATE["students"].get(sid)
+
             if student is None:
                 raise NotFoundError("student not found")
 
             result = dict(student)
             result["percentage"] = pct(sid)
+
             return 200, result
 
         if self.path == "/assessments":
@@ -132,6 +177,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 }
                 for sid, student in STATE["students"].items()
             ]
+
             return 200, report
 
         raise NotFoundError("unknown endpoint")
@@ -169,6 +215,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
             STATE["students"][sid] = record
             save()
+
             return 201, record
 
         if self.path == "/assessments":
@@ -187,37 +234,25 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
             STATE["assessments"][aid] = assessment_record
             save()
+
             return 201, assessment_record
 
         if self.path == "/marks":
             mark = parse_mark(payload)
 
-            if mark.student not in STATE["students"]:
-                raise NotFoundError("student not found")
+            add_mark(
+                STATE,
+                mark,
+                lambda: str(datetime.datetime.now()),
+                save,
+            )
 
-            assessment = STATE["assessments"].get(mark.assessment)
-            if assessment is None:
-                raise NotFoundError("assessment not found")
-
-            if mark.score > float(assessment["total"]):
-                raise ValidationError(
-                    "score cannot exceed assessment total"
-                )
-
-            mark_record: dict[str, Any] = {
-                "student": mark.student,
-                "assessment": mark.assessment,
-                "score": mark.score,
-                "at": str(datetime.datetime.now()),
-            }
-
-            STATE["marks"].append(mark_record)
-            save()
             logger.info(
                 "Recorded mark for student %s, score %s",
                 mark.student,
                 mark.score,
             )
+
             return 201, {"ok": True}
 
         raise NotFoundError("unknown endpoint")
@@ -249,7 +284,9 @@ def main(argv: list[str] | None = None) -> None:
         )
 
     load()
+
     logger.info("Gradebook service listening on port %s", port)
+
     server = http.server.HTTPServer(("", port), Handler)
     server.serve_forever()
 
