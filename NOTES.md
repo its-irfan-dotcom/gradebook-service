@@ -70,3 +70,12 @@ The full test suite has 58% code coverage. Coverage shows which code was execute
 
 
 Task 6 mutation test: `test_score_boundaries` failed when the score validation operator was changed from `>` to `>=`. This confirms that a score equal to the assessment total must be accepted.
+
+Hypothesis found that adding multiple marks for the same student and assessment can make the percentage exceed the assessment weight. The defect is that `add_mark()` counts duplicate marks instead of replacing the previous mark.
+
+**Task 7 — Property-Based Testing**
+
+- Hypothesis failing example: `scores=[1, 20]`
+- Actual percentage: 10.5
+- Expected maximum percentage: 10
+- Defect: `add_mark()` stores duplicate marks for the same student and assessment. The `pct()` function counts both marks, allowing the percentage to exceed the assessment weight.
