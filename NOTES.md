@@ -34,3 +34,12 @@ Restored the original `/` operator after the experiment and reran the tests.
 - Tools installed: pytest, hypothesis, coverage, ruff, mypy
 - Total coverage: Pending coverage report
 - File with the lowest coverage: Pending coverage report
+
+
+# Lab 05 — Test-Driven Development and Boundary Cases
+
+## Task 1 — Testing and Coverage Setup
+
+- Tools installed: pytest, hypothesis, coverage, ruff, mypy
+- Total coverage: 53%
+- File with the lowest coverage: gradebook.py (38%)
