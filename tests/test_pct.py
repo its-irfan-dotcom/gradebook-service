@@ -3,29 +3,44 @@ import pytest
 import gradebook
 
 
-def test_student_with_no_marks_has_zero_percentage(loaded):
-    # Arrange: loaded provides a student with no marks.
-
-    # Act
-    result = gradebook.pct("S1")
-
-    # Assert
-    assert result == "0"
-
-
-def test_student_with_one_mark_gets_correct_percentage(loaded):
+@pytest.mark.parametrize(
+    ("marks", "expected"),
+    [
+        pytest.param([], "0", id="no-marks"),
+        pytest.param(
+            [{"student": "S1", "assessment": "A1", "score": 15}],
+            "7.5",
+            id="a1-score-15",
+        ),
+        pytest.param(
+            [{"student": "S1", "assessment": "A1", "score": 20}],
+            "10.0",
+            id="a1-score-20",
+        ),
+        pytest.param(
+            [{"student": "S1", "assessment": "A1", "score": 0}],
+            "0.0",
+            id="a1-score-zero",
+        ),
+        pytest.param(
+            [
+                {"student": "S1", "assessment": "A1", "score": 15},
+                {"student": "S1", "assessment": "A2", "score": 40},
+            ],
+            "31.5",
+            id="a1-and-a2",
+        ),
+    ],
+)
+def test_student_percentage(loaded, marks, expected):
     # Arrange
-    loaded["marks"].append({
-        "student": "S1",
-        "assessment": "A1",
-        "score": 15,
-    })
+    loaded["marks"] = marks
 
     # Act
     result = gradebook.pct("S1")
 
     # Assert
-    assert result == "7.5"
+    assert result == expected
 
 
 def test_mark_for_unknown_assessment_is_ignored(loaded):

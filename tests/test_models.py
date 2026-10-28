@@ -22,14 +22,32 @@ def test_nonblank_text_is_stripped() -> None:
     assert parse_text("  Ali  ", "name") == "Ali"
 
 
-def test_boolean_is_rejected_as_number() -> None:
-    with pytest.raises(ValidationError):
-        parse_number(True, "score")
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("15", id="integer-string"),
+        pytest.param(15, id="integer"),
+        pytest.param("2.5", id="decimal-string"),
+    ],
+)
+def test_parse_number_accepts_valid_numbers(value) -> None:
+    assert parse_number(value, "score") == float(value)
 
 
-def test_nan_is_rejected() -> None:
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("abc", id="text"),
+        pytest.param(True, id="boolean"),
+        pytest.param(None, id="none"),
+        pytest.param([], id="list"),
+        pytest.param("nan", id="nan"),
+        pytest.param("inf", id="infinity"),
+    ],
+)
+def test_parse_number_rejects_invalid_numbers(value) -> None:
     with pytest.raises(ValidationError):
-        parse_number(float("nan"), "score")
+        parse_number(value, "score")
 
 
 def test_zero_assessment_total_is_rejected() -> None:
