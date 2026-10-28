@@ -5,3 +5,17 @@ from rules import ensure_weight_fits
 def test_empty_weights_accept_new_weight():
     ensure_weight_fits([], 50)
 
+
+import pytest
+
+from errors import ValidationError
+from rules import ensure_weight_fits
+
+
+def test_empty_weights_accept_new_weight():
+    ensure_weight_fits([], 50)
+
+
+def test_reject_total_above_100():
+    with pytest.raises(ValidationError, match="100"):
+        ensure_weight_fits([60], 50)
