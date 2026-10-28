@@ -1,15 +1,10 @@
 
+import pytest
 import gradebook
 
 
-def test_pct_no_marks(monkeypatch):
-    # Arrange
-    state = {
-        "students": {"S1": {"name": "Ali"}},
-        "assessments": {},
-        "marks": [],
-    }
-    monkeypatch.setattr(gradebook, "STATE", state)
+def test_student_with_no_marks_has_zero_percentage(loaded):
+    # Arrange: loaded provides a student with no marks.
 
     # Act
     result = gradebook.pct("S1")
@@ -18,33 +13,31 @@ def test_pct_no_marks(monkeypatch):
     assert result == "0"
 
 
-def test_pct_calculates_percentage(monkeypatch):
-    state = {
-        "students": {"S1": {"name": "Ali"}},
-        "assessments": {
-            "A1": {"weight": 10, "total": 20}
-        },
-        "marks": [
-            {"student": "S1", "assessment": "A1", "score": 15}
-        ],
-    }
-    monkeypatch.setattr(gradebook, "STATE", state)
+def test_student_with_one_mark_gets_correct_percentage(loaded):
+    # Arrange
+    loaded["marks"].append({
+        "student": "S1",
+        "assessment": "A1",
+        "score": 15,
+    })
 
+    # Act
     result = gradebook.pct("S1")
 
+    # Assert
     assert result == "7.5"
 
 
-def test_pct_ignores_unknown_assessment(monkeypatch):
-    state = {
-        "students": {"S1": {"name": "Ali"}},
-        "assessments": {},
-        "marks": [
-            {"student": "S1", "assessment": "UNKNOWN", "score": 15}
-        ],
-    }
-    monkeypatch.setattr(gradebook, "STATE", state)
+def test_mark_for_unknown_assessment_is_ignored(loaded):
+    # Arrange
+    loaded["marks"].append({
+        "student": "S1",
+        "assessment": "UNKNOWN",
+        "score": 15,
+    })
 
+    # Act
     result = gradebook.pct("S1")
 
+    # Assert
     assert result == "0"
