@@ -67,3 +67,6 @@ Restored the original `/` operator after the experiment and reran the tests.
 
 # Task 5
 The full test suite has 58% code coverage. Coverage shows which code was executed, but it cannot tell me whether my tests correctly check the results or detect every bug. The `main()` function in `gradebook.py` has no direct test.
+
+
+Task 6 mutation test: `test_score_boundaries` failed when the score validation operator was changed from `>` to `>=`. This confirms that a score equal to the assessment total must be accepted.
