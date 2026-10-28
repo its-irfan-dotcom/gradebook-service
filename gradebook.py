@@ -14,6 +14,7 @@ from errors import (
     ValidationError,
 )
 from models import parse_assessment, parse_mark, parse_student
+from rules import ensure_weight_fits
 
 DATA = "gradebook.json"
 
@@ -46,6 +47,34 @@ def load() -> dict[str, Any]:
 def save() -> None:
     with open(DATA, "w", encoding="utf-8") as file:
         json.dump(STATE, file)
+
+
+def add_assessment(state, assessment, save):
+    """Validate and store an assessment, then save the state."""
+    aid = assessment.id
+
+    if aid in state["assessments"]:
+        raise ConflictError("assessment already exists")
+
+    existing_weights = [
+        record["weight"]
+        for record in state["assessments"].values()
+    ]
+
+    ensure_weight_fits(existing_weights, assessment.weight)
+
+    assessment_record = {
+        "id": assessment.id,
+        "title": assessment.title,
+        "weight": assessment.weight,
+        "total": assessment.total,
+    }
+
+    state["assessments"][aid] = assessment_record
+    save()
+
+    return assessment_record
+
 
 
 def add_mark(
@@ -167,7 +196,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         if self.path == "/assessments":
             return 200, list(STATE["assessments"].values())
-
         if self.path == "/report":
             report = [
                 {
@@ -220,21 +248,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         if self.path == "/assessments":
             assessment = parse_assessment(payload)
-            aid = assessment.id
-
-            if aid in STATE["assessments"]:
-                raise ConflictError("assessment already exists")
-
-            assessment_record: dict[str, Any] = {
-                "id": assessment.id,
-                "title": assessment.title,
-                "weight": assessment.weight,
-                "total": assessment.total,
-            }
-
-            STATE["assessments"][aid] = assessment_record
-            save()
-
+            assessment_record = add_assessment(
+                STATE,
+                assessment,
+                save,
+            )
             return 201, assessment_record
 
         if self.path == "/marks":
