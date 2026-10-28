@@ -43,3 +43,24 @@ Restored the original `/` operator after the experiment and reran the tests.
 - Tools installed: pytest, hypothesis, coverage, ruff, mypy
 - Total coverage: 53%
 - File with the lowest coverage: gradebook.py (38%)
+
+
+## Task 2 — Test-Driven Development
+
+### Cycle 1
+- Test: Empty existing weights with new weight 50.
+- Result: Passed after implementing the minimum function.
+
+### Cycle 2
+- Test: Existing weight 60 plus new weight 50.
+- Expected: ValidationError with 100 in the message.
+- Initial failure message: [Paste actual failure message]
+
+### Cycle 3
+- Test: Existing weight 60 plus new weight 40.
+- Result: [Record whether it failed first or passed immediately.]
+
+### Cycle 4
+- Test: Decimal weights totaling 100.
+- Initial failure message: [Paste actual failure message]
+- Fix: Added a tolerance of 1e-9.
