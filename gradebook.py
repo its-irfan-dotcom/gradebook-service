@@ -26,14 +26,21 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def load() -> None:
+
+def load() -> dict[str, Any]:
     global STATE
 
     try:
         with open(DATA, encoding="utf-8") as file:
             STATE = json.load(file)
     except FileNotFoundError:
-        STATE = {"students": {}, "assessments": {}, "marks": []}
+        STATE = {
+            "students": {},
+            "assessments": {},
+            "marks": [],
+        }
+
+    return STATE
 
 
 def save() -> None:
