@@ -100,6 +100,7 @@ def add_mark(
             "score cannot exceed assessment total"
         )
 
+    
     mark_record: dict[str, Any] = {
         "student": student_id,
         "assessment": assessment_id,
@@ -107,8 +108,19 @@ def add_mark(
         "at": now(),
     }
 
+
+    state["marks"] = [
+        existing_mark
+        for existing_mark in state["marks"]
+        if not (
+            existing_mark["student"] == student_id
+            and existing_mark["assessment"] == assessment_id
+        )
+    ]
+
     state["marks"].append(mark_record)
     save()
+
 
 
 def pct(sid: str) -> str:

@@ -1,15 +1,12 @@
-import pytest
-from hypothesis import given, strategies as st
 from unittest.mock import patch
+
+from hypothesis import given
+from hypothesis import strategies as st
 
 import gradebook
 from models import Mark
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="duplicate marks are all counted",
-)
 @given(
     scores=st.lists(
         st.integers(min_value=0, max_value=20),
@@ -36,7 +33,7 @@ def test_percentage_never_exceeds_weight(scores):
     for score in scores:
         gradebook.add_mark(
             state,
-            Mark(
+        Mark(
                 student="S1",
                 assessment="A1",
                 score=score,

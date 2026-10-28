@@ -79,3 +79,15 @@ Hypothesis found that adding multiple marks for the same student and assessment 
 - Actual percentage: 10.5
 - Expected maximum percentage: 10
 - Defect: `add_mark()` stores duplicate marks for the same student and assessment. The `pct()` function counts both marks, allowing the percentage to exceed the assessment weight.
+
+### Task 8 — Replace Duplicate Marks
+
+- Added a test confirming that a new mark replaces the previous mark for the same student and assessment.
+- The duplicate-mark test failed before the implementation was fixed.
+- Updated `add_mark()` to remove the previous matching mark before storing the new mark.
+- Removed the `xfail` marker from the property-based test.
+- Full test suite: **51 passed**.
+- Total test coverage: **59%**.
+- `gradebook.py` coverage: 43%.
+- `errors.py` coverage: 100%.
+- `rules.py` coverage: 100%.

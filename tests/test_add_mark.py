@@ -5,6 +5,7 @@ import pytest
 
 from errors import NotFoundError, ValidationError
 from gradebook import add_mark
+from models import Mark
 
 
 def make_state():
@@ -91,3 +92,39 @@ def test_invalid_mark_is_rejected_without_saving(
 
     assert state["marks"] == []
     save.assert_not_called()
+
+
+def test_adding_duplicate_mark_replaces_old_mark():
+    state = {
+        "students": {"S1": {"id": "S1", "name": "Ali"}},
+        "assessments": {
+            "A1": {"id": "A1", "weight": 10, "total": 20}
+        },
+        "marks": [],
+    }
+
+    save = Mock()
+
+    add_mark(
+        state,
+        Mark(student="S1", assessment="A1", score=5),
+        lambda: "2026-10-28 10:00:00",
+        save,
+    )
+
+    add_mark(
+        state,
+        Mark(student="S1", assessment="A1", score=18),
+        lambda: "2026-10-28 10:01:00",
+        save,
+    )
+
+    matching_marks = [
+        mark
+        for mark in state["marks"]
+        if mark["student"] == "S1"
+        and mark["assessment"] == "A1"
+    ]
+
+    assert len(matching_marks) == 1
+    assert matching_marks[0]["score"] == 18

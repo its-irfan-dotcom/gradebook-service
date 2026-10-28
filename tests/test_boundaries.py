@@ -63,7 +63,8 @@ def test_score_boundaries():
             lambda: None,
         )
 
-    assert len(state["marks"]) == 2
+    assert len(state["marks"]) == 1
+    assert state["marks"][0]["score"] == 20
 
 
 
