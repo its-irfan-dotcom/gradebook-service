@@ -26,3 +26,11 @@ Restored the original `/` operator after the experiment and reran the tests.
 
 - **`pct()`:** It is the logic being tested, so it should run normally to prove that the calculation is correct.
 - **File in Task 5:** `tmp_path` provides a real temporary file, allowing `load()` and `save()` to be tested without mocking file operations.
+
+# Lab 05 — Test-Driven Development and Boundary Cases
+
+## Task 1 — Testing and Coverage Setup
+
+- Tools installed: pytest, hypothesis, coverage, ruff, mypy
+- Total coverage: Pending coverage report
+- File with the lowest coverage: Pending coverage report
