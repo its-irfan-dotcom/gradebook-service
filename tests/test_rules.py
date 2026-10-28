@@ -19,3 +19,7 @@ def test_empty_weights_accept_new_weight():
 def test_reject_total_above_100():
     with pytest.raises(ValidationError, match="100"):
         ensure_weight_fits([60], 50)
+
+
+def test_total_exactly_100_is_allowed():
+    ensure_weight_fits([60], 40)
